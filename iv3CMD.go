@@ -213,25 +213,4 @@ func TriggerStatusResult(cameraName Camera) CameraResult {
 	return cameraResult
 }
 
-func main() { /*
-		tpxCamera := Camera{
-			location:    "ShuttleB",
-			description: "Camera that judges robot probe placement and operators the machine.",
-			ipAddress:   "10.205.31.0",
-			port:        "8500",
-			delimiter:   "\r\n",
-		}
-
-		//tpxCamera.info()
-		//ReadProgramNumber(tpxCamera)
-
-		cameraOutput := TriggerStatusResult(tpxCamera)
-		fmt.Printf("Camera output: %+v\n", cameraOutput)
-		//fmt.Println(cameraOutput.toolResult[0])
-		fmt.Println("sequence end.")
-
-		//response := Iv3CmdTemplate("PR", "", tpxCamera) //call basic CMD template to verify string check is working
-		os.Exit(0)
-		//fmt.Printf("Response: %v\n", response)
-	*/
-}
+func main() {}
