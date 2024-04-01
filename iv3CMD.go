@@ -1,4 +1,4 @@
-package main
+package iv3CMD
 
 import (
 	"fmt"
@@ -103,21 +103,21 @@ func parseCameraResult(cameraResult []string) CameraResult {
 	return outputResult
 }
 
-func (cameraName Camera) connString() string {
+func (cameraName Camera) ConnString() string {
 	return fmt.Sprintf("%v:%v", cameraName.ipAddress, cameraName.port)
 }
 
-func (cameraName Camera) info() {
+func (cameraName Camera) Info() {
 	fmt.Printf("Camera location: %v\n", cameraName.location)
 	fmt.Printf("Brief description: %v\n", cameraName.description)
-	fmt.Printf("Connect to %v at ip:port : %v\n", cameraName, cameraName.connString())
+	fmt.Printf("Connect to %v at ip:port : %v\n", cameraName, cameraName.ConnString())
 }
 
 func Iv3CmdTemplate(prefix string, arg string, cameraName Camera) string {
 	//put together input string
 	inputString := fmt.Sprintf("%v,%v%v", prefix, arg, cameraName.delimiter)
 
-	conn, err := net.Dial("tcp", cameraName.connString())
+	conn, err := net.Dial("tcp", cameraName.ConnString())
 	if err != nil {
 		fmt.Println("Error:", err)
 		return err.Error()
@@ -212,5 +212,3 @@ func TriggerStatusResult(cameraName Camera) CameraResult {
 	cameraResult := parseCameraResult(responseSplit)
 	return cameraResult
 }
-
-func main() {}
