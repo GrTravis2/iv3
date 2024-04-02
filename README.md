@@ -2,50 +2,59 @@ Package of commands that operate Keyence IV3 cameras using TCP/IP procedures wri
 
 ## Initialize a camera:
 ```go
-    myCamera := Camera {
-        location: "myDesk",
-        description: "takes pictures of myDesk",
-        ipAddress: "11.222.33.4",
-        port: "8500", //iv3 defaults to port 8500
-        delimiter: "\r\n", //iv3 defaults to carriage return
+myCamera := Camera {
+    location    string,
+    description string,
+    ipAddress   string,
+    port        string, //iv3 defaults to port "8500"
+    delimiter   string, //iv3 defaults to carriage return "\r\n"
     }
 ```
 ## Use the camera object and additional arguments to "do stuff"
 
 ### Changing programs
 ```go
-    response := ProgramChange(programNumber, myCamera) //reads response and returns success/unsuccessful
-```
+var programNumber int
+var myCamera Camera
+var response string
 
-Types: response string, programNumber int, myCamera camera
+response = ProgramChange(programNumber, myCamera)
+//reads response and returns success/unsuccessful
+```
 
 ### Read current program
 ```go
-    response := ReadProgramNumber(myCamera)
+var myCamera Camera
+var response string
+
+response = ReadProgramNumber(myCamera)
 ```
 
-Types: response string, myCamera camera
+
 
 ### Command camera to trigger and return program results, **this one is more complicated...**
 
 two more structs are used in the response for this command:
 ```go
-    type CameraResult struct {
-        resultNumber    int
-        totalPassResult bool
-        toolResult      []ToolResult
-        }
+type CameraResult struct {
+    resultNumber    int
+    totalPassResult bool
+    toolResult      []ToolResult
+}
 
-    type ToolResult struct {
-        toolNumber     int
-        toolPassResult bool
-        matchingRate   int
-        }
+type ToolResult struct {
+    toolNumber     int
+    toolPassResult bool
+    matchingRate   int
+}
 ```
 **Results are returned in the form of a camera result struct made of summary values and individual tool results**
 ```go
-cameraResult := TriggerStatusResult(myCamera)
-```
-Types: cameraResult CameraResult, myCamera Camera
+var myCamera Camera
+var cameraResult CameraResult
 
-## More commands incoming...
+cameraResult = TriggerStatusResult(myCamera)
+```
+
+
+## List of commands are still a WIP...
