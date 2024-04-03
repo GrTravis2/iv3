@@ -133,20 +133,17 @@ func Iv3CmdTemplate(prefix string, arg string, cameraName Camera) string {
 	//read response
 	buffer := make([]byte, 1024)
 
-	for {
-		//read data from client
-		n, err := conn.Read(buffer)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return err.Error()
-		}
-		//response := string(buffer[:n])
-		var response = string(buffer[:n])
-		conn.Close()
-		responseTrim := strings.Trim(response, "\r")
-		return responseTrim
+	//read data from client
+	n, err := conn.Read(buffer)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err.Error()
 	}
-
+	//response := string(buffer[:n])
+	var response = string(buffer[:n])
+	conn.Close()
+	responseTrim := strings.Trim(response, "\r")
+	return responseTrim
 }
 
 func ProgramChange(programNumber int, cameraName Camera) {
@@ -206,4 +203,65 @@ func TriggerStatusResult(cameraName Camera) CameraResult {
 	}
 	cameraResult := parseCameraResult(responseSplit)
 	return cameraResult
+}
+
+func OperatingStatus(cameraName Camera) bool { // is the camera currently in run mode or program mode?
+	//configure prefix and input of command based on template starting point
+	prefix := "RM"
+	arg := "" //cmd takes no arg, leave blank
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+
+	operating, err := strconv.ParseBool(responseSplit[1])
+	if responseSplit[0] == "RM" && err == nil {
+		fmt.Printf("Status reading successful. Camera in operating mode: %v", operating)
+
+	} else {
+		fmt.Printf("Status reading unsuccessful. Try again.")
+	}
+	return operating
+}
+
+type SensorState struct {
+	busy bool
+	//second bit reserved for system - will always return 0 - discard it!
+	imageCapture bool
+	sdCard       bool
+	sdCardFull   bool
+	warning      bool
+	err          bool
+}
+
+func SensorStatus(cameraName Camera) SensorState {
+	//configure prefix and input of command based on template starting point
+	prefix := "SR"
+	arg := "" //cmd takes no arg, leave blank
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	var sensorState SensorState
+	if responseSplit[0] == "SR" {
+		fmt.Printf("Status check successul.")
+		if responseSplit[1] == "1" {
+			sensorState.busy = true
+		}
+		//skip responseSplit[2] - bit reserved by camera system
+		if responseSplit[3] == "1" {
+			sensorState.imageCapture = true
+		}
+		if responseSplit[4] == "1" {
+			sensorState.sdCard = true
+		}
+		if responseSplit[5] == "1" {
+			sensorState.sdCardFull = true
+		}
+		if responseSplit[6] == "1" {
+			sensorState.warning = true
+		}
+		if responseSplit[7] == "1" {
+			sensorState.err = true
+		}
+	}
+	return sensorState
 }
