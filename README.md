@@ -55,6 +55,15 @@ var cameraResult CameraResult
 
 cameraResult = TriggerStatusResult(myCamera)
 ```
+### Command to read current operating status of the camera 
+```go
+var operating bool
+
+operating = OperatingStatus(myCamera)
+//if camera in "run" mode operating == true
+//else operating == false or ("program" mode / not operating)
+
+```
 
 
 ## List of commands are still a WIP...
