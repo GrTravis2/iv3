@@ -1,9 +1,8 @@
-package iv3CMD
+package iv3
 
 import (
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -160,10 +159,8 @@ func ProgramChange(programNumber int, cameraName Camera) {
 	//handle expected response and act accordingly
 	if responseSplit[0] == "PW" {
 		fmt.Printf("Program Change Successful.\n")
-		os.Exit(0)
 	} else {
 		fmt.Printf("Program change unsuccessful, please try again\n")
-		os.Exit(1)
 	}
 }
 
@@ -177,10 +174,8 @@ func ReadProgramNumber(cameraName Camera) {
 	if responseSplit[0] == "PR" {
 		fmt.Printf("Program Read Successful.\n")
 		fmt.Printf("Current Program Number: %v\n", responseSplit[1])
-		os.Exit(0)
 	} else {
 		fmt.Printf("Program change unsuccessful, please try again\n")
-		os.Exit(1)
 	}
 }
 
