@@ -265,3 +265,108 @@ func SensorStatus(cameraName Camera) SensorState {
 	}
 	return sensorState
 }
+
+type ProgramStats struct {
+	maxTime      int
+	minTime      int
+	avgTime      int
+	trigCount    int
+	okCount      int
+	ngCount      int
+	trigErrCount int
+	toolStats    []ToolStat
+}
+
+type ToolStat struct {
+	toolNumber      int
+	maxMatchingRate int
+	minMatchingRate int
+}
+
+func StatInfoReading(cameraName Camera) ProgramStats {
+	//configure prefix and input of command based on template starting point
+	prefix := "STR"
+	arg := "" //cmd takes no arg, leave blank
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	if responseSplit[0] == "STR" {
+		fmt.Printf("Camera statistics reading successful.\n")
+	} else {
+		fmt.Printf("camera statistics reading, please try again\n")
+	}
+	maxTime, err := strconv.Atoi(responseSplit[1])
+	if err != nil {
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported max processing time: %v\n", responseSplit[1])
+		panic(err)
+	}
+	minTime, err := strconv.Atoi(responseSplit[2])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported min processing time: %v\n", responseSplit[2])
+		panic(err)
+	}
+	avgTime, err := strconv.Atoi(responseSplit[3])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported average processing time: %v\n", responseSplit[3])
+		panic(err)
+	}
+	trigCount, err := strconv.Atoi(responseSplit[4])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported triger count: %v\n", responseSplit[4])
+		panic(err)
+	}
+	okCount, err := strconv.Atoi(responseSplit[5])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported ok count: %v\n", responseSplit[5])
+		panic(err)
+	}
+	ngCount, err := strconv.Atoi(responseSplit[6])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported not good count: %v\n", responseSplit[6])
+		panic(err)
+	}
+	trigErrCount, err := strconv.Atoi(responseSplit[7])
+	if err != nil {
+		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported tool number: %v\n", responseSplit[7])
+		panic(err)
+	}
+	var toolResult []ToolStat
+	toolResultOnly := responseSplit[7:]
+	toolCount := (len(toolResultOnly) / 3)
+	for i := range toolCount {
+		//Need to call strconv func to turn given strings to proper types for struct
+		//fmt.Printf("i: %v\n", i)
+		toolNumber, err := strconv.Atoi(toolResultOnly[3*i])
+		if err != nil {
+			fmt.Printf("Unable to interpret tool number response. Try again or escalate to engineering.\n Reported tool number: %v\n", toolResultOnly[3*i])
+			panic(err)
+		}
+		maxMatchingRate, err := strconv.Atoi(toolResultOnly[3*i])
+		if err != nil {
+			fmt.Printf("Unable to interpret tool number response. Try again or escalate to engineering.\n Reported max matching rate: %v\n", toolResultOnly[(3*i)+1])
+			panic(err)
+		}
+		minMatchingRate, err := strconv.Atoi(toolResultOnly[(3*i)+2])
+		if err != nil {
+			fmt.Printf("Unable to matching rate response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", toolResultOnly[(3*i)+2])
+			panic(err)
+		}
+		mapResults := ToolStat{
+			toolNumber:      toolNumber,
+			maxMatchingRate: maxMatchingRate,
+			minMatchingRate: minMatchingRate,
+		}
+		toolResult = append(toolResult, mapResults)
+	}
+	programStats := ProgramStats{
+		maxTime:      maxTime,
+		minTime:      minTime,
+		avgTime:      avgTime,
+		trigCount:    trigCount,
+		okCount:      okCount,
+		ngCount:      ngCount,
+		trigErrCount: trigErrCount,
+		toolStats:    toolResult,
+	}
+	return programStats
+}
