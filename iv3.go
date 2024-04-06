@@ -446,7 +446,7 @@ func StatReset(cameraName Camera) {
 	}
 }
 
-func ErrorRead(cameraName Camera) int {
+func ErrorRead(cameraName Camera) {
 	//configure prefix and input of command based on template starting point
 	prefix := "RER"
 	arg := "" //no args
@@ -463,5 +463,26 @@ func ErrorRead(cameraName Camera) int {
 		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported error number: %v\n", responseSplit[1])
 		panic(err)
 	}
-	return errNumber
+	if errNumber == 0 {
+		fmt.Printf("Error Number: %v\nA data error has occurred in current program\nTry reloading program or cycling power", errNumber)
+	}
+	if (1 <= errNumber) && (errNumber <= 32) {
+		fmt.Printf("Error Number: %v\nProgram switching error due to external input\nClear error and reload program", errNumber)
+	}
+	if errNumber == 53 {
+		fmt.Printf("Error Number: %v\nProgram switching error due to network device\nClear error and reload program", errNumber)
+	}
+	if errNumber == 55 {
+		fmt.Printf("Error Number: %v\nProgram switching error during run status\nClear error and reload program", errNumber)
+	}
+	if (97 <= errNumber) && (errNumber <= 99) {
+		fmt.Printf("Error Number: %v\nNon-volatile memory error\nReinitialize unit settings or cycle power", errNumber)
+	}
+	if (errNumber == 95) || (errNumber == 96) || ((100 <= errNumber) && (errNumber <= 128)) {
+		fmt.Printf("Error Number: %v\nSystem error\nCycle power.", errNumber)
+	}
+	if errNumber == 79 {
+		fmt.Printf("Error Number: %v\nNo sensor head connected to amplifier\nReconnect sensor head then cycle power", errNumber)
+	}
+
 }
