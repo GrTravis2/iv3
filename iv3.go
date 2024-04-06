@@ -302,32 +302,32 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 	}
 	minTime, err := strconv.Atoi(responseSplit[2])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported min processing time: %v\n", responseSplit[2])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported min processing time: %v\n", responseSplit[2])
 		panic(err)
 	}
 	avgTime, err := strconv.Atoi(responseSplit[3])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported average processing time: %v\n", responseSplit[3])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported average processing time: %v\n", responseSplit[3])
 		panic(err)
 	}
 	trigCount, err := strconv.Atoi(responseSplit[4])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported triger count: %v\n", responseSplit[4])
+		fmt.Printf("Unable to interpretresponse. Try again or escalate to engineering.\n Reported triger count: %v\n", responseSplit[4])
 		panic(err)
 	}
 	okCount, err := strconv.Atoi(responseSplit[5])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported ok count: %v\n", responseSplit[5])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported ok count: %v\n", responseSplit[5])
 		panic(err)
 	}
 	ngCount, err := strconv.Atoi(responseSplit[6])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported not good count: %v\n", responseSplit[6])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported not good count: %v\n", responseSplit[6])
 		panic(err)
 	}
 	trigErrCount, err := strconv.Atoi(responseSplit[7])
 	if err != nil {
-		fmt.Printf("Unable to interpret. Try again or escalate to engineering.\n Reported tool number: %v\n", responseSplit[7])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported tool number: %v\n", responseSplit[7])
 		panic(err)
 	}
 	var toolResult []ToolStat
@@ -338,17 +338,17 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 		//fmt.Printf("i: %v\n", i)
 		toolNumber, err := strconv.Atoi(toolResultOnly[3*i])
 		if err != nil {
-			fmt.Printf("Unable to interpret tool number response. Try again or escalate to engineering.\n Reported tool number: %v\n", toolResultOnly[3*i])
+			fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported tool number: %v\n", toolResultOnly[3*i])
 			panic(err)
 		}
 		maxMatchingRate, err := strconv.Atoi(toolResultOnly[3*i])
 		if err != nil {
-			fmt.Printf("Unable to interpret max matching rate response. Try again or escalate to engineering.\n Reported max matching rate: %v\n", toolResultOnly[(3*i)+1])
+			fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported max matching rate: %v\n", toolResultOnly[(3*i)+1])
 			panic(err)
 		}
 		minMatchingRate, err := strconv.Atoi(toolResultOnly[(3*i)+2])
 		if err != nil {
-			fmt.Printf("Unable to interpret min matching rate response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", toolResultOnly[(3*i)+2])
+			fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", toolResultOnly[(3*i)+2])
 			panic(err)
 		}
 		mapResults := ToolStat{
@@ -374,7 +374,7 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 func ThresholdWrite(cameraName Camera, toolNumber int, thresholdValue int) int {
 	//configure prefix and input of command based on template starting point
 	prefix := "DW"
-	arg := fmt.Sprintf("%v,0,%v") //prefix, args delimiter
+	arg := fmt.Sprintf("%v,0,%v", toolNumber, thresholdValue) //prefix, args delimiter
 	response := Iv3CmdTemplate(prefix, arg, cameraName)
 	//handle expected response and act accordingly
 	responseSplit := strings.Split(response, ",")
@@ -385,8 +385,49 @@ func ThresholdWrite(cameraName Camera, toolNumber int, thresholdValue int) int {
 	}
 	toolNumber, err := strconv.Atoi(responseSplit[2])
 	if err != nil {
-		fmt.Printf("Unable to interpret tool number. Try again or escalate to engineering.\n Reported min matching rate: %v\n", responseSplit[2])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", responseSplit[2])
 		panic(err)
 	}
 	return toolNumber
+}
+
+type ToolThreshold struct {
+	toolNumber     int
+	upperLimit     bool
+	thresholdValue int
+}
+
+func ThresholdRead(cameraName Camera, toolNumber int) ToolThreshold {
+	//configure prefix and input of command based on template starting point
+	prefix := "DR"
+	arg := fmt.Sprintf("%v,0", toolNumber) //prefix, args delimiter
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	if responseSplit[0] == "DR" {
+		fmt.Printf("Program threshold change successful.\n")
+	} else {
+		fmt.Printf("Program threshold change unsuccessful, please try again\n")
+	}
+	toolNumber, err := strconv.Atoi(responseSplit[1])
+	if err != nil {
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported max processing time: %v\n", responseSplit[1])
+		panic(err)
+	}
+	upperLimit, err := strconv.ParseBool(responseSplit[2])
+	if err != nil {
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported min processing time: %v\n", responseSplit[2])
+		panic(err)
+	}
+	thresholdValue, err := strconv.Atoi(responseSplit[3])
+	if err != nil {
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported average processing time: %v\n", responseSplit[3])
+		panic(err)
+	}
+	ToolThreshold := ToolThreshold{
+		toolNumber:     toolNumber,
+		upperLimit:     upperLimit,
+		thresholdValue: thresholdValue,
+	}
+	return ToolThreshold
 }
