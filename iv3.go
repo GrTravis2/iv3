@@ -411,17 +411,17 @@ func ThresholdRead(cameraName Camera, toolNumber int) ToolThreshold {
 	}
 	toolNumber, err := strconv.Atoi(responseSplit[1])
 	if err != nil {
-		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported max processing time: %v\n", responseSplit[1])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported tool number time: %v\n", responseSplit[1])
 		panic(err)
 	}
 	upperLimit, err := strconv.ParseBool(responseSplit[2])
 	if err != nil {
-		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported min processing time: %v\n", responseSplit[2])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported limit type: %v\n", responseSplit[2])
 		panic(err)
 	}
 	thresholdValue, err := strconv.Atoi(responseSplit[3])
 	if err != nil {
-		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported average processing time: %v\n", responseSplit[3])
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported threshold value: %v\n", responseSplit[3])
 		panic(err)
 	}
 	ToolThreshold := ToolThreshold{
@@ -430,4 +430,38 @@ func ThresholdRead(cameraName Camera, toolNumber int) ToolThreshold {
 		thresholdValue: thresholdValue,
 	}
 	return ToolThreshold
+}
+
+func StatReset(cameraName Camera) {
+	//configure prefix and input of command based on template starting point
+	prefix := "STC"
+	arg := "" //no args
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	if responseSplit[0] == "STC" {
+		fmt.Printf("Statistics reset successful.\n")
+	} else {
+		fmt.Printf("Statistics reset unsuccessful, please try again\n")
+	}
+}
+
+func ErrorRead(cameraName Camera) int {
+	//configure prefix and input of command based on template starting point
+	prefix := "RER"
+	arg := "" //no args
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	if responseSplit[0] == "RER" {
+		fmt.Printf("Statistics reset successful.\n")
+	} else {
+		fmt.Printf("Statistics reset unsuccessful, please try again\n")
+	}
+	errNumber, err := strconv.Atoi(responseSplit[1])
+	if err != nil {
+		fmt.Printf("Unable to interpret response. Try again or escalate to engineering.\n Reported error number: %v\n", responseSplit[1])
+		panic(err)
+	}
+	return errNumber
 }
