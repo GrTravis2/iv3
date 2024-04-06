@@ -293,7 +293,7 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 	if responseSplit[0] == "STR" {
 		fmt.Printf("Camera statistics reading successful.\n")
 	} else {
-		fmt.Printf("camera statistics reading, please try again\n")
+		fmt.Printf("camera statistics reading unsuccessful, please try again\n")
 	}
 	maxTime, err := strconv.Atoi(responseSplit[1])
 	if err != nil {
@@ -343,12 +343,12 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 		}
 		maxMatchingRate, err := strconv.Atoi(toolResultOnly[3*i])
 		if err != nil {
-			fmt.Printf("Unable to interpret tool number response. Try again or escalate to engineering.\n Reported max matching rate: %v\n", toolResultOnly[(3*i)+1])
+			fmt.Printf("Unable to interpret max matching rate response. Try again or escalate to engineering.\n Reported max matching rate: %v\n", toolResultOnly[(3*i)+1])
 			panic(err)
 		}
 		minMatchingRate, err := strconv.Atoi(toolResultOnly[(3*i)+2])
 		if err != nil {
-			fmt.Printf("Unable to matching rate response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", toolResultOnly[(3*i)+2])
+			fmt.Printf("Unable to interpret min matching rate response. Try again or escalate to engineering.\n Reported min matching rate: %v\n", toolResultOnly[(3*i)+2])
 			panic(err)
 		}
 		mapResults := ToolStat{
@@ -369,4 +369,24 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 		toolStats:    toolResult,
 	}
 	return programStats
+}
+
+func ThresholdWrite(cameraName Camera, toolNumber int, thresholdValue int) int {
+	//configure prefix and input of command based on template starting point
+	prefix := "DW"
+	arg := fmt.Sprintf("%v,0,%v") //prefix, args delimiter
+	response := Iv3CmdTemplate(prefix, arg, cameraName)
+	//handle expected response and act accordingly
+	responseSplit := strings.Split(response, ",")
+	if responseSplit[0] == "DW" {
+		fmt.Printf("Program threshold change successful.\n")
+	} else {
+		fmt.Printf("Program threshold change unsuccessful, please try again\n")
+	}
+	toolNumber, err := strconv.Atoi(responseSplit[2])
+	if err != nil {
+		fmt.Printf("Unable to interpret tool number. Try again or escalate to engineering.\n Reported min matching rate: %v\n", responseSplit[2])
+		panic(err)
+	}
+	return toolNumber
 }
