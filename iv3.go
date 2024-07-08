@@ -8,11 +8,11 @@ import (
 )
 
 type Camera struct {
-	location    string
-	description string
-	ipAddress   string
-	port        string
-	delimiter   string
+	Location    string
+	Description string
+	IpAddress   string
+	Port        string
+	Delimiter   string
 	//programList []program //Leaving note here to eventually add configurable progams to help with mapping and error handling
 }
 
@@ -69,7 +69,7 @@ func parseCameraResult(cameraResult []string) CameraResult {
 	toolResultOnly := cameraResult[3:]
 	//fmt.Println("Tool result string: ", toolResultOnly)
 	toolCount := (len(toolResultOnly) / 3)
-	for i := range toolCount {
+	for i := 0; i < toolCount; i++ {
 		//Need to call strconv func to turn given strings to proper types for struct
 		//fmt.Printf("i: %v\n", i)
 		toolNumber, err := strconv.Atoi(toolResultOnly[3*i])
@@ -103,18 +103,18 @@ func parseCameraResult(cameraResult []string) CameraResult {
 }
 
 func (cameraName Camera) ConnString() string {
-	return fmt.Sprintf("%v:%v", cameraName.ipAddress, cameraName.port)
+	return fmt.Sprintf("%v:%v", cameraName.IpAddress, cameraName.Port)
 }
 
 func (cameraName Camera) Info() {
-	fmt.Printf("Camera location: %v\n", cameraName.location)
-	fmt.Printf("Brief description: %v\n", cameraName.description)
+	fmt.Printf("Camera location: %v\n", cameraName.Location)
+	fmt.Printf("Brief description: %v\n", cameraName.Description)
 	fmt.Printf("Connect to %v at ip:port : %v\n", cameraName, cameraName.ConnString())
 }
 
 func Iv3CmdTemplate(prefix string, arg string, cameraName Camera) string {
 	//put together input string
-	inputString := fmt.Sprintf("%v,%v%v", prefix, arg, cameraName.delimiter)
+	inputString := fmt.Sprintf("%v,%v%v", prefix, arg, cameraName.Delimiter)
 
 	conn, err := net.Dial("tcp", cameraName.ConnString())
 	if err != nil {
@@ -333,7 +333,7 @@ func StatInfoReading(cameraName Camera) ProgramStats {
 	var toolResult []ToolStat
 	toolResultOnly := responseSplit[7:]
 	toolCount := (len(toolResultOnly) / 3)
-	for i := range toolCount {
+	for i := 0; i < toolCount; i++ {
 		//Need to call strconv func to turn given strings to proper types for struct
 		//fmt.Printf("i: %v\n", i)
 		toolNumber, err := strconv.Atoi(toolResultOnly[3*i])
