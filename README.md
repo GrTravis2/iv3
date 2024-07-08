@@ -3,11 +3,11 @@ Package of commands that operate Keyence IV3 cameras using TCP/IP procedures wri
 ## Initialize a camera:
 ```go
 myCamera := Camera {
-    location    string,
-    description string,
-    ipAddress   string,
-    port        string, //iv3 defaults to port "8500"
-    delimiter   string, //iv3 defaults to carriage return "\r\n"
+    Location    string,
+    Description string,
+    IpAddress   string,
+    Port        string, //iv3 defaults to port "8500"
+    Delimiter   string, //iv3 defaults to carriage return "\r\n"
     }
 ```
 ## Use the camera object and additional arguments to "do stuff"
