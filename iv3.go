@@ -506,7 +506,7 @@ func (c *Camera) Config() {
 	)
 
 	for {
-		fmt.Print("Enter number to modify a camera value or enter 0 to reivew changes.\n(ex. press 2 + Enter to change camera description)")
+		fmt.Print("Enter number to modify a camera value or enter 0 to review changes.\n(ex. press 2 + Enter to change camera description)")
 		fmt.Scanln(&choice)
 
 		switch choice {
