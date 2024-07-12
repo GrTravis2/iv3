@@ -506,39 +506,39 @@ func (c *Camera) Config() {
 	)
 
 	for {
-		fmt.Print("Enter number to modify a camera value or enter 0 to review changes.\n(ex. press 2 + Enter to change camera description)")
+		fmt.Print("Enter number to modify a camera value or enter 0 to review changes.\n(ex. press 2 + Enter to change camera description)\n")
 		fmt.Scanln(&choice)
 
 		switch choice {
 		case 0:
 			break
 		case 1:
-			fmt.Printf("Please enter new camera location value and press enter.")
-			fmt.Printf("Previous value: %v", c.Location)
+			fmt.Printf("Please enter new camera location value and press enter.\n")
+			fmt.Printf("Previous value: %v\n", c.Location)
 			fmt.Scanln(&newLocation)
 			continue
 		case 2:
-			fmt.Printf("Please enter new camera description value and press enter.")
-			fmt.Printf("Previous value: %v", c.Description)
+			fmt.Printf("Please enter new camera description value and press enter.\n")
+			fmt.Printf("Previous value: %v\n", c.Description)
 			fmt.Scanln(&newDescription)
 			continue
 		case 3:
-			fmt.Printf("Please enter new camera ip address value and press enter.")
-			fmt.Printf("Previous value: %v", c.IpAddress)
+			fmt.Printf("Please enter new camera ip address value and press enter.\n")
+			fmt.Printf("Previous value: %v\n", c.IpAddress)
 			fmt.Scanln(&newIp)
 			continue
 		case 4:
-			fmt.Printf("Please enter new camera port value and press enter.")
-			fmt.Printf("Previous value: %v", c.Port)
+			fmt.Printf("Please enter new camera port value and press enter.\n")
+			fmt.Printf("Previous value: %v\n", c.Port)
 			fmt.Scanln(&newPort)
 			continue
 		case 5:
-			fmt.Printf("Please enter new camera delimiter value and press enter.")
-			fmt.Printf("Previous value: %v", c.Delimiter)
+			fmt.Printf("Please enter new camera delimiter value and press enter.\n")
+			fmt.Printf("Previous value: %v\n", c.Delimiter)
 			fmt.Scanln(&newDelimiter)
 			continue
 		default:
-			fmt.Printf("Choice not recognized, please try again")
+			fmt.Printf("Choice not recognized, please try again\n")
 			continue
 		}
 
@@ -546,7 +546,7 @@ func (c *Camera) Config() {
 			newLocation = c.Location
 		}
 		if newDescription == "" {
-			newLocation = c.Description
+			newDescription = c.Description
 		}
 		if newIp == "" {
 			newIp = c.IpAddress
@@ -558,22 +558,22 @@ func (c *Camera) Config() {
 			newDelimiter = c.Delimiter
 		}
 
-		fmt.Printf("Please confirm changes below:")
+		fmt.Printf("Please confirm changes below:\n")
 		fmt.Printf("Camera location: %v => %v\n", c.Location, newLocation)
 		fmt.Printf("Camera description: %v => %v\n", c.Description, newDescription)
 		fmt.Printf("Camera ip address: %v => %v\n", c.IpAddress, newIp)
 		fmt.Printf("Camera port number: %v => %v\n", c.Port, newPort)
 		fmt.Printf("Camera delimiter: %v => %v\n", c.Delimiter, newDelimiter)
-		fmt.Printf("Please confirm changes to exit. Enter 'y' to confirm, enter 'n' to try again, or enter 'exit' to discard all changes and exit.")
+		fmt.Printf("Please confirm changes to exit.\nEnter 'y' to confirm, enter 'n' to try again, or enter 'exit' to discard all changes and exit.\n")
 		fmt.Scanln(&confirm)
 		if confirm == "Y" || confirm == "y" || confirm == "Yes" || confirm == "yes" || confirm == "1" || confirm == "yeah" {
 			break
 		} else if confirm == "N" || confirm == "n" || confirm == "No" || confirm == "no" || confirm == "0" || confirm == "nah" {
-			fmt.Printf("changes will not be saved! Returning back to value selection.")
+			fmt.Printf("changes will not be saved! Returning back to value selection.\n")
 		} else if confirm == "exit" || confirm == "Exit" {
 			break
 		} else {
-			fmt.Printf("confirmation not recognized, try again.")
+			fmt.Printf("confirmation not recognized, try again.\n")
 		}
 
 		fmt.Printf("1. Camera location\n2. Camera description\n3. Camera ip address\n4. Camera port number\n5. Camera delimiter\n")
@@ -584,8 +584,8 @@ func (c *Camera) Config() {
 		c.IpAddress = newIp
 		c.Port = newPort
 		c.Delimiter = newDelimiter
-		fmt.Printf("Camera values updated successfully.")
+		fmt.Printf("Camera values updated successfully.\n")
 	}
-	fmt.Printf("Exiting camera configuration...")
+	fmt.Printf("Exiting camera configuration...\n")
 
 }
