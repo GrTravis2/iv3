@@ -6,25 +6,34 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	c := New()
+	c := New([]int{0, 0, 0, 0})
 
-	expectedIp := []int{192, 168, 1, 1}
-	ip := c.getIp()
+	expectedIp := []int{0, 0, 0, 0}
+	ip := c.GetIp()
 	for i := range len(c.ip) {
 		if expectedIp[i] != ip[i] {
 			t.Errorf("expected default value: %v, actual value: ip[%v] = %v\n", expectedIp[i], i, c.ip[i])
 		}
 	}
-	if c.getPort() != 8500 {
-		t.Errorf("Expected port: %v, found %v\n", 8500, c.getPort())
+	if c.GetPort() != 8500 {
+		t.Errorf("Expected port: %v, found %v\n", 8500, c.GetPort())
 	}
-	if c.getDelimiter() != '\r' {
-		t.Errorf("Expected delimiter: %v, found %v\n", '\r', c.getPort())
+	if c.GetDelimiter() != "\r" {
+		t.Errorf("Expected delimiter: %v, found %v\n", '\r', c.GetDelimiter())
+	}
+
+	c2 := New([]int{192, 168, 1, 1})
+	expectedIp = []int{192, 168, 1, 1}
+	ip = c2.GetIp()
+	for i := range len(c.ip) {
+		if expectedIp[i] != ip[i] {
+			t.Errorf("expected default value: %v, actual value: ip[%v] = %v\n", expectedIp[i], i, c.ip[i])
+		}
 	}
 }
 
 func TestSetIp(t *testing.T) {
-	c := New()
+	c := New([]int{0, 0, 0, 0})
 	var tests = []struct {
 		values []int
 		out    bool
@@ -49,7 +58,7 @@ func TestSetIp(t *testing.T) {
 }
 
 func TestSetPort(t *testing.T) {
-	c := New()
+	c := New([]int{0, 0, 0, 0})
 	low := c.SetPort(0)
 	if low == true {
 		t.Error("setPort allows value under lower bound - Fail")

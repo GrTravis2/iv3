@@ -5,34 +5,38 @@ import "fmt"
 type Camera struct {
 	ip        []int
 	port      int
-	delimiter rune
+	delimiter string
 }
 
 // init iv3 camera with default values, change thru setters
-func New() *Camera {
+func New(ipAddress []int) *Camera {
 	c := Camera{
-		ip:        []int{192, 168, 1, 1},
+		ip:        []int{0, 0, 0, 0},
 		port:      8500,
-		delimiter: '\r',
+		delimiter: "\r",
+	}
+	if !c.SetIp(ipAddress) {
+		fmt.Printf("Invalid ipAddress %v, camera initialized with default ip %v\nip can be updated later.", ipAddress, c.ip)
 	}
 
 	return &c
 }
 
-// getters
-func (c *Camera) getIp() []int {
+// **getters**
+func (c *Camera) GetIp() []int {
 	return c.ip
 }
 
-func (c *Camera) getPort() int {
+func (c *Camera) GetPort() int {
 	return c.port
 }
 
-func (c *Camera) getDelimiter() rune {
+func (c *Camera) GetDelimiter() string {
 	return c.delimiter
 }
 
-// setters
+// **setters**
+
 func (c *Camera) SetIp(vals []int) bool {
 	//validate format
 	ok := true
@@ -62,6 +66,7 @@ func (c *Camera) SetIp(vals []int) bool {
 	return ok
 }
 
+// set camera's port value, must be in range [1024, 65535]
 func (c *Camera) SetPort(newPort int) bool {
 	ok := true
 	if newPort > 1023 && newPort < 65536 {
@@ -74,7 +79,7 @@ func (c *Camera) SetPort(newPort int) bool {
 	return ok
 }
 
-func (c *Camera) SetDelimiter(delim rune) bool {
+func (c *Camera) SetDelimiter(delim string) bool {
 	c.delimiter = delim
 	return true
 }
