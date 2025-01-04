@@ -148,6 +148,7 @@ type textRead struct {
 	toolNum int
 }
 
+// Read current master text value for specified tool in range [1, 64]
 func TextRead(toolNum int) (textRead, error) {
 	num := -1
 	var err error = nil
@@ -204,28 +205,40 @@ func (cmd textWrite) Compose() string {
 // **TODO** Nice to have functions for later :)
 
 /*
+
 type textLengthRead struct {}
 
-func TextLengthRead () {}
+// Get master text when scanning for length of text mode
+func TextLengthRead() textLengthRead {}
 
 func (cmd textLengthRead) Compose() string {}
 
 type textLengthWrite struct {}
 
-func TextLengthWrite () {}
+// Set length of text to be scanned for
+func TextLengthWrite() textLengthWrite {}
 
 func (cmd textLengthWrite) Compose() string {}
 
 type savedFileRead struct {}
 
-func SavedFileRead() {}
+// Read the name of the file used to configure image transfer thru FTP/SD
+func SavedFileRead() savedFileRead {}
 
 func (cmd savedFileRead) Compose() string {}
 
 type savedFileWrite struct {}
 
-func SavedFileWrite() {}
+// Set the name of the file used to configure image transfer thru FTP/SD
+func SavedFileWrite() savedFileWrite {}
 
 func (cmd savedFileWrite) Compose() string {}
+
+type registerMasterImage struct {}
+
+// Update the program master image to current live image
+func RegisterMasterImage() registerMasterImage {}
+
+func (cmd registerMasterImage) Compose() string {}
 
 */
