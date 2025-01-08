@@ -49,9 +49,9 @@ func (cmd *readResult) Compose() string {
 }
 
 func (cmd *readResult) Interpret(s string) *readResultResponse {
-	err := true
+	err := false
 	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
-		err = false
+		err = true
 		_, s, _ = strings.Cut(s, ",")
 	}
 	prefix, data, _ := strings.Cut(s, ",")
@@ -110,9 +110,9 @@ func (cmd *trig) Compose() string {
 }
 
 func (cmd *trig) Interpret(s string) *trigResponse {
-	err := true
+	err := false
 	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
-		err = false
+		err = true
 		_, s, _ = strings.Cut(s, ",")
 	}
 	prefix, data, _ := strings.Cut(s, ",")
@@ -175,7 +175,7 @@ type programWrite struct {
 }
 
 // Set camera program, program number must be in range [0, 127]
-func ProgramWrite(num int) (programWrite, error) {
+func ProgramWrite(num int) (*programWrite, error) {
 	val := -1
 	var err error = nil
 	if -1 < num && num < 128 {
@@ -189,11 +189,38 @@ func ProgramWrite(num int) (programWrite, error) {
 		val,
 	}
 
-	return pw, err
+	return &pw, err
 }
 
-func (cmd programWrite) Compose() string {
+func (cmd *programWrite) Compose() string {
 	return fmt.Sprintf("PW,%v", cmd.num)
+}
+
+func (cmd *programWrite) Interpret(s string) *programWriteResponse {
+	err := false
+	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
+		err = true
+		_, s, _ = strings.Cut(s, ",")
+	}
+	prefix, data, _ := strings.Cut(s, ",")
+	num, _ := strconv.Atoi(data)
+	r := programWriteResponse{
+		err:           err,
+		prefix:        prefix,
+		programNumber: num,
+	}
+
+	return &r
+}
+
+type programWriteResponse struct {
+	err           bool
+	prefix        string
+	programNumber int
+}
+
+func (r *programWriteResponse) Ok() bool {
+	return r.err
 }
 
 type thresholdRead struct {
@@ -202,7 +229,7 @@ type thresholdRead struct {
 }
 
 // Read a program limit of the specified tool and limit type (upper/lower)
-func ThresholdRead(toolNum int, upperLimit bool) (thresholdRead, error) {
+func ThresholdRead(toolNum int, upperLimit bool) (*thresholdRead, error) {
 	val := -1
 	var err error = nil
 	if -1 < toolNum && toolNum < 65 {
@@ -216,16 +243,52 @@ func ThresholdRead(toolNum int, upperLimit bool) (thresholdRead, error) {
 		upperLimit,
 	}
 
-	return tr, err
+	return &tr, err
 }
 
-func (cmd thresholdRead) Compose() string {
+func (cmd *thresholdRead) Compose() string {
 	b := "0"
 	if cmd.upperLimit {
 		b = "1"
 	}
 
 	return fmt.Sprintf("DR,%v,%v", cmd.toolNum, b)
+}
+
+func (cmd *thresholdRead) Interpret(s string) *thresholdReadResponse {
+	data := strings.Split(s, ",")
+	prefix := data[0]
+	toolNum, _ := strconv.Atoi(data[1])
+	upper := false
+	if data[2] == "1" {
+		upper = true
+	}
+	tLimit, _ := strconv.Atoi(data[3])
+
+	r := thresholdReadResponse{
+		prefix:         prefix,
+		toolNum:        toolNum,
+		upperLimit:     upper,
+		thresholdLimit: tLimit,
+	}
+
+	return &r
+}
+
+type thresholdReadResponse struct { //docs says it wont error, can always add later if needed
+	prefix         string
+	toolNum        int
+	upperLimit     bool
+	thresholdLimit int
+}
+
+func (r *thresholdReadResponse) Ok() bool {
+	ok := false
+	if r.prefix == "DR" {
+		ok = true
+	}
+
+	return ok
 }
 
 type thresholdWrite struct {
@@ -235,7 +298,7 @@ type thresholdWrite struct {
 }
 
 // Set the threshold of the given tool and limit to entered limit
-func ThresholdWrite(toolNum int, upperLimit bool, newLimit int) (thresholdWrite, error) {
+func ThresholdWrite(toolNum int, upperLimit bool, newLimit int) (*thresholdWrite, error) {
 	tVal := -1
 	var err error = nil
 	if -1 < toolNum && toolNum < 65 {
@@ -255,10 +318,10 @@ func ThresholdWrite(toolNum int, upperLimit bool, newLimit int) (thresholdWrite,
 		newLimit:   newVal,
 	}
 
-	return tw, err
+	return &tw, err
 }
 
-func (cmd thresholdWrite) Compose() string {
+func (cmd *thresholdWrite) Compose() string {
 	b := "0"
 	if cmd.upperLimit {
 		b = "1"
@@ -266,12 +329,39 @@ func (cmd thresholdWrite) Compose() string {
 	return fmt.Sprintf("DW,%v,%v,%v", cmd.toolNum, b, cmd.newLimit)
 }
 
+func (cmd *thresholdWrite) Interpret(s string) *thresholdWriteResponse {
+	data := strings.Split(s, ",")
+	prefix := data[0]
+	toolNum, _ := strconv.Atoi(data[1])
+
+	r := thresholdWriteResponse{
+		prefix:  prefix,
+		toolNum: toolNum,
+	}
+
+	return &r
+}
+
+type thresholdWriteResponse struct {
+	prefix  string
+	toolNum int
+}
+
+func (r *thresholdWriteResponse) Ok() bool {
+	ok := false
+	if r.prefix == "DW" {
+		ok = true
+	}
+
+	return ok
+}
+
 type textRead struct {
 	toolNum int
 }
 
 // Read current master text value for specified tool in range [1, 64]
-func TextRead(toolNum int) (textRead, error) {
+func TextRead(toolNum int) (*textRead, error) {
 	num := -1
 	var err error = nil
 	if 0 < toolNum && toolNum < 65 {
@@ -279,11 +369,40 @@ func TextRead(toolNum int) (textRead, error) {
 	} else {
 		err = fmt.Errorf("invalid tool number %v, should be in range [1, 64]", toolNum)
 	}
-	return textRead{num}, err
+	return &textRead{num}, err
 }
 
-func (cmd textRead) Compose() string {
+func (cmd *textRead) Compose() string {
 	return fmt.Sprintf("CR,%v", cmd.toolNum)
+}
+
+func (cmd *textRead) Interpret(s string) *textReadResponse {
+	data := strings.Split(s, ",")
+	prefix := data[0]
+	toolNum, _ := strconv.Atoi(data[1])
+	masterText := strings.Split(data[2], "")
+	r := textReadResponse{
+		prefix:     prefix,
+		toolNum:    toolNum,
+		masterText: masterText,
+	}
+
+	return &r
+}
+
+type textReadResponse struct {
+	prefix     string
+	toolNum    int
+	masterText []string
+}
+
+func (r *textReadResponse) Ok() bool {
+	ok := false
+	if r.prefix == "CR" {
+		ok = true
+	}
+
+	return ok
 }
 
 type textWrite struct {
@@ -294,7 +413,7 @@ type textWrite struct {
 const MAX_TEXT_LEN = 16
 
 // Set master text for specified tool number, text must be less than 16 characters
-func TextWrite(toolNum int, text string) (textWrite, error) {
+func TextWrite(toolNum int, text string) (*textWrite, error) {
 	masterText := make([]string, MAX_TEXT_LEN)
 	if len(text) > 16 {
 		fmt.Printf("length of input text %v, is too long. Only the first 16 chars will be sent.\n", text)
@@ -317,11 +436,38 @@ func TextWrite(toolNum int, text string) (textWrite, error) {
 		masterText: masterText,
 	}
 
-	return tw, err
+	return &tw, err
 }
 
-func (cmd textWrite) Compose() string {
+func (cmd *textWrite) Compose() string {
 	return fmt.Sprintf("CW,%v,%v", cmd.toolNum, strings.Join(cmd.masterText, ""))
+}
+
+func (cmd *textWriteResponse) Interpret(s string) *textWriteResponse {
+	data := strings.Split(s, ",")
+	prefix := data[0]
+	toolNum, _ := strconv.Atoi(data[1])
+
+	r := textWriteResponse{
+		prefix:  prefix,
+		toolNum: toolNum,
+	}
+
+	return &r
+}
+
+type textWriteResponse struct {
+	prefix  string
+	toolNum int
+}
+
+func (r *textWriteResponse) Ok() bool {
+	ok := false
+	if r.prefix == "CW" {
+		ok = true
+	}
+
+	return ok
 }
 
 // **TODO** Nice to have functions for later :)
