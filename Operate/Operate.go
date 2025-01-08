@@ -2,28 +2,100 @@ package Operate
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 type blindTrig struct{}
 
 // Command camera to take image
-func BlindTrig() blindTrig {
-	return blindTrig{}
+func BlindTrig() *blindTrig {
+	return &blindTrig{}
 }
 
-func (cmd blindTrig) Compose() string {
+func (cmd *blindTrig) Compose() string {
 	return "T1"
+}
+
+func (cmd *blindTrig) Interpret(s string) *blindTrigResponse {
+	fields := strings.Split(s, ",")
+	r := blindTrigResponse{
+		prefix: fields[0],
+	}
+
+	return &r
+}
+
+type blindTrigResponse struct {
+	prefix string
+}
+
+func (r *blindTrigResponse) Ok() bool {
+	ok := false
+	if r.prefix != "T1" {
+		ok = true
+	}
+	return ok
 }
 
 type readResult struct{}
 
 // Read last camera image result
-func ReadResult() readResult {
-	return readResult{}
+func ReadResult() *readResult {
+	return &readResult{}
 }
-func (cmd readResult) Compose() string {
+func (cmd *readResult) Compose() string {
 	return "RT"
+}
+
+func (cmd *readResult) Interpret(s string) *readResultResponse {
+	err := true
+	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
+		err = false
+		_, s, _ = strings.Cut(s, ",")
+	}
+	prefix, data, _ := strings.Cut(s, ",")
+	r := readResultResponse{
+		err:    err,
+		prefix: prefix,
+		data:   ToolResult(data),
+	}
+
+	return &r
+}
+
+type readResultResponse struct {
+	err    bool
+	prefix string
+	data   []toolResult
+}
+
+type toolResult struct {
+	resultNum int  // -> in range [0, 32767]
+	ok        bool // -> image pass/fail
+}
+
+func (r *readResultResponse) Ok() bool {
+	return r.err
+}
+
+func ToolResult(s string) []toolResult {
+	tools := make([]toolResult, int((strings.Count(s, ",")+1)/2))
+	data := strings.Split(s, ",")
+	l := len(data)
+	for i := 0; i < l; i += 2 {
+		count, _ := strconv.Atoi(data[i])
+		ok := false
+		if data[i+1] == "OK" {
+			ok = true
+		}
+		tools = append(tools, toolResult{
+			resultNum: count,
+			ok:        ok,
+		})
+	}
+
+	return tools
 }
 
 type trig struct{}
@@ -35,6 +107,32 @@ func Trig() trig {
 
 func (cmd trig) Compose() string {
 	return "T2"
+}
+
+func (cmd trig) Interpret(s string) *trigResponse {
+	err := true
+	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
+		err = false
+		_, s, _ = strings.Cut(s, ",")
+	}
+	prefix, data, _ := strings.Cut(s, ",")
+	t := trigResponse{
+		err:    err,
+		prefix: prefix,
+		data:   ToolResult(data),
+	}
+
+	return &t
+}
+
+type trigResponse struct {
+	err    bool
+	prefix string
+	data   []toolResult
+}
+
+func (r *trigResponse) Ok() bool {
+	return r.err
 }
 
 type programRead struct{}

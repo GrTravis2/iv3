@@ -9,6 +9,11 @@ import (
 
 type Message interface {
 	Compose() string
+	Interpret(string) Response
+}
+
+type Response interface {
+	Ok() bool
 }
 
 type Messenger struct {
@@ -24,7 +29,7 @@ func New(name string, c *Camera.Camera) *Messenger {
 	return &m
 }
 
-func (m *Messenger) Send(name string, msg Message) ([]string, error) {
+func (m *Messenger) Send(name string, msg Message) (Response, error) {
 	c := m.Cameras[name]
 	var result string = ""
 	conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", c.GetIp(), c.GetPort()))
@@ -38,13 +43,13 @@ func (m *Messenger) Send(name string, msg Message) ([]string, error) {
 			//read data from client
 			n, err := conn.Read(buffer)
 			if err == nil {
-				result = strings.Trim(string(buffer[:n]), "\r")
+				result = strings.Trim(string(buffer[:n]), c.GetDelimiter())
 			}
 		}
 	}
 	conn.Close()
 
-	return strings.Split(result, ","), err
+	return msg.Interpret(result), err
 }
 
 func (m *Messenger) Add(name string, c Camera.Camera) {
