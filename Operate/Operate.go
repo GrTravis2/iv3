@@ -101,15 +101,15 @@ func ToolResult(s string) []toolResult {
 type trig struct{}
 
 // Command camera to take image and return result
-func Trig() trig {
-	return trig{}
+func Trig() *trig {
+	return &trig{}
 }
 
-func (cmd trig) Compose() string {
+func (cmd *trig) Compose() string {
 	return "T2"
 }
 
-func (cmd trig) Interpret(s string) *trigResponse {
+func (cmd *trig) Interpret(s string) *trigResponse {
 	err := true
 	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
 		err = false
@@ -138,12 +138,36 @@ func (r *trigResponse) Ok() bool {
 type programRead struct{}
 
 // Read camera's current program
-func ProgramRead() programRead {
-	return programRead{}
+func ProgramRead() *programRead {
+	return &programRead{}
 }
 
-func (cmd programRead) Compose() string {
+func (cmd *programRead) Compose() string {
 	return "PR"
+}
+
+func (cmd *programRead) Interpret(s string) *programReadResponse {
+	data := strings.Split(s, ",")
+	num, _ := strconv.Atoi(data[1])
+	r := programReadResponse{
+		prefix:        data[0],
+		programNumber: num,
+	}
+
+	return &r
+}
+
+type programReadResponse struct {
+	prefix        string
+	programNumber int
+}
+
+func (r programReadResponse) Ok() bool {
+	ok := true
+	if r.prefix != "PR" {
+		ok = false
+	}
+	return ok
 }
 
 type programWrite struct {
