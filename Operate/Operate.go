@@ -31,9 +31,9 @@ type blindTrigResponse struct {
 }
 
 func (r *blindTrigResponse) Ok() bool {
-	ok := false
+	ok := true
 	if r.prefix != "T1" {
-		ok = true
+		ok = false
 	}
 	return ok
 }
@@ -76,7 +76,7 @@ type toolResult struct {
 }
 
 func (r *readResultResponse) Ok() bool {
-	return r.err
+	return !r.err
 }
 
 func ToolResult(s string) []toolResult {
@@ -89,7 +89,7 @@ func ToolResult(s string) []toolResult {
 		if data[i+1] == "OK" {
 			ok = true
 		}
-		tools = append(tools, toolResult{
+		tools = append(tools[1:], toolResult{
 			resultNum: count,
 			ok:        ok,
 		})
@@ -132,7 +132,7 @@ type trigResponse struct {
 }
 
 func (r *trigResponse) Ok() bool {
-	return r.err
+	return !r.err
 }
 
 type programRead struct{}
@@ -198,29 +198,26 @@ func (cmd *programWrite) Compose() string {
 
 func (cmd *programWrite) Interpret(s string) *programWriteResponse {
 	err := false
-	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
+	if s[:2] == "ER" { // err msg returned
 		err = true
 		_, s, _ = strings.Cut(s, ",")
 	}
-	prefix, data, _ := strings.Cut(s, ",")
-	num, _ := strconv.Atoi(data)
+	prefix, _, _ := strings.Cut(s, ",")
 	r := programWriteResponse{
-		err:           err,
-		prefix:        prefix,
-		programNumber: num,
+		err:    err,
+		prefix: prefix,
 	}
 
 	return &r
 }
 
 type programWriteResponse struct {
-	err           bool
-	prefix        string
-	programNumber int
+	err    bool
+	prefix string
 }
 
 func (r *programWriteResponse) Ok() bool {
-	return r.err
+	return !r.err
 }
 
 type thresholdRead struct {
@@ -443,7 +440,7 @@ func (cmd *textWrite) Compose() string {
 	return fmt.Sprintf("CW,%v,%v", cmd.toolNum, strings.Join(cmd.masterText, ""))
 }
 
-func (cmd *textWriteResponse) Interpret(s string) *textWriteResponse {
+func (cmd *textWrite) Interpret(s string) *textWriteResponse {
 	data := strings.Split(s, ",")
 	prefix := data[0]
 	toolNum, _ := strconv.Atoi(data[1])

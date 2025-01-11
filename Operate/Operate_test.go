@@ -6,38 +6,59 @@ import (
 )
 
 func TestBlindTrig(t *testing.T) {
-	actual := BlindTrig().Compose()
+	cmd := BlindTrig()
+	actual := cmd.Compose()
 	expected := "T1"
 
 	if actual != expected {
 		t.Errorf("expected %v, found %v", expected, actual)
 	}
+
+	if !cmd.Interpret("T1").Ok() {
+		t.Errorf("response error")
+	}
 }
 
 func TestReadResult(t *testing.T) {
-	actual := ReadResult().Compose()
+	cmd := ReadResult()
+	actual := cmd.Compose()
 	expected := "RT"
 
 	if actual != expected {
 		t.Errorf("expected %v, found %v", expected, actual)
 	}
+
+	if !cmd.Interpret("RT,32767,OK").Ok() {
+		t.Errorf("response error")
+	}
+
 }
 
 func TestTrig(t *testing.T) {
-	actual := Trig().Compose()
+	cmd := Trig()
+	actual := cmd.Compose()
 	expected := "T2"
 
 	if actual != expected {
 		t.Errorf("expected %v, found %v", expected, actual)
 	}
+
+	if !cmd.Interpret("RT,32767,OK").Ok() {
+		t.Errorf("response error")
+	}
 }
 
 func TestProgramRead(t *testing.T) {
-	actual := ProgramRead().Compose()
+	cmd := ProgramRead()
+	actual := cmd.Compose()
 	expected := "PR"
 
 	if actual != expected {
 		t.Errorf("expected %v, found %v", expected, actual)
+	}
+
+	if !cmd.Interpret("PR,099").Ok() {
+		t.Errorf("response error")
 	}
 }
 
@@ -63,6 +84,10 @@ func TestProgramWrite(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected %v, found %v", expected, actual)
 	}
+
+	if !cmd.Interpret("PW").Ok() {
+		t.Errorf("response error")
+	}
 }
 
 func TestThresholdRead(t *testing.T) {
@@ -85,6 +110,11 @@ func TestThresholdRead(t *testing.T) {
 				t.Errorf("Expected %v, found %v", input.ans, out.Compose())
 			}
 		})
+	}
+
+	cmd, _ := ThresholdRead(0, false)
+	if !cmd.Interpret("DR,64,1,9999999").Ok() {
+		t.Errorf("response error")
 	}
 }
 
@@ -110,6 +140,11 @@ func TestThresholdWrite(t *testing.T) {
 			}
 		})
 	}
+
+	cmd, _ := ThresholdWrite(0, false, 9999999)
+	if !cmd.Interpret("DW,64").Ok() {
+		t.Errorf("response error")
+	}
 }
 
 func TestTextRead(t *testing.T) {
@@ -133,6 +168,10 @@ func TestTextRead(t *testing.T) {
 	if result.Compose() != ans || err == nil {
 		t.Errorf("expected %v found %v", ans, s)
 	}
+
+	if !result.Interpret("CR,64, ").Ok() {
+		t.Errorf("response error")
+	}
 }
 
 func TestTextWrite(t *testing.T) {
@@ -155,5 +194,9 @@ func TestTextWrite(t *testing.T) {
 	s = result.Compose()
 	if result.Compose() != ans || err == nil {
 		t.Errorf("expected %v found %v", ans, s)
+	}
+
+	if !result.Interpret("CW,64").Ok() {
+		t.Errorf("response error")
 	}
 }

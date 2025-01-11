@@ -43,7 +43,7 @@ func (m *Messenger) Send(name string, msg Message) (Response, error) {
 			//read data from client
 			n, err := conn.Read(buffer)
 			if err == nil {
-				result = strings.Trim(string(buffer[:n]), c.GetDelimiter())
+				result = strings.Trim(string(buffer[:n]), fmt.Sprintf(",%v", c.GetDelimiter()))
 			}
 		}
 	}
