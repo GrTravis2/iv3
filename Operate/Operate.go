@@ -1,7 +1,9 @@
 package Operate
 
 import (
+	"errors"
 	"fmt"
+	"iv3/Camera"
 	"strconv"
 	"strings"
 )
@@ -58,7 +60,7 @@ func (cmd *readResult) Interpret(s string) *readResultResponse {
 	r := readResultResponse{
 		err:    err,
 		prefix: prefix,
-		data:   ToolResult(data),
+		data:   Camera.ToolResult(data),
 	}
 
 	return &r
@@ -67,35 +69,11 @@ func (cmd *readResult) Interpret(s string) *readResultResponse {
 type readResultResponse struct {
 	err    bool
 	prefix string
-	data   []toolResult
-}
-
-type toolResult struct {
-	resultNum int  // -> in range [0, 32767]
-	ok        bool // -> image pass/fail
+	data   Camera.ToolResults
 }
 
 func (r *readResultResponse) Ok() bool {
 	return !r.err
-}
-
-func ToolResult(s string) []toolResult {
-	tools := make([]toolResult, int((strings.Count(s, ",")+1)/2))
-	data := strings.Split(s, ",")
-	l := len(data)
-	for i := 0; i < l; i += 2 {
-		count, _ := strconv.Atoi(data[i])
-		ok := false
-		if data[i+1] == "OK" {
-			ok = true
-		}
-		tools = append(tools[1:], toolResult{
-			resultNum: count,
-			ok:        ok,
-		})
-	}
-
-	return tools
 }
 
 type trig struct{}
@@ -119,7 +97,7 @@ func (cmd *trig) Interpret(s string) *trigResponse {
 	t := trigResponse{
 		err:    err,
 		prefix: prefix,
-		data:   ToolResult(data),
+		data:   Camera.ToolResult(data),
 	}
 
 	return &t
@@ -128,7 +106,7 @@ func (cmd *trig) Interpret(s string) *trigResponse {
 type trigResponse struct {
 	err    bool
 	prefix string
-	data   []toolResult
+	data   Camera.ToolResults
 }
 
 func (r *trigResponse) Ok() bool {
@@ -148,10 +126,12 @@ func (cmd *programRead) Compose() string {
 
 func (cmd *programRead) Interpret(s string) *programReadResponse {
 	data := strings.Split(s, ",")
-	num, _ := strconv.Atoi(data[1])
+	num, _ := strconv.Atoi(data[1]) // -> data coming from camera, trust its valid
+	pNum, _ := Camera.MakeProgramNumber(num)
+
 	r := programReadResponse{
 		prefix:        data[0],
-		programNumber: num,
+		programNumber: pNum,
 	}
 
 	return &r
@@ -159,7 +139,7 @@ func (cmd *programRead) Interpret(s string) *programReadResponse {
 
 type programReadResponse struct {
 	prefix        string
-	programNumber int
+	programNumber Camera.ProgramNumber
 }
 
 func (r programReadResponse) Ok() bool {
@@ -171,20 +151,15 @@ func (r programReadResponse) Ok() bool {
 }
 
 type programWrite struct {
-	num int
+	num Camera.ProgramNumber
 }
 
 // Set camera program, program number must be in range [0, 127]
 func ProgramWrite(num int) (*programWrite, error) {
-	val := -1
-	var err error = nil
-	if -1 < num && num < 128 {
-		val = num
-	} else {
+	val, err := Camera.MakeProgramNumber(num)
+	if err != nil {
 		val = -1
-		err = fmt.Errorf("invalid program number %v", num)
 	}
-
 	pw := programWrite{
 		val,
 	}
@@ -221,23 +196,20 @@ func (r *programWriteResponse) Ok() bool {
 }
 
 type thresholdRead struct {
-	toolNum    int
-	upperLimit bool
+	toolNum    Camera.ToolNumber
+	upperLimit Camera.UpperLimit
 }
 
 // Read a program limit of the specified tool and limit type (upper/lower)
 func ThresholdRead(toolNum int, upperLimit bool) (*thresholdRead, error) {
-	val := -1
-	var err error = nil
-	if -1 < toolNum && toolNum < 65 {
-		val = toolNum
-	} else {
-		err = fmt.Errorf("invalid tool number %v", toolNum)
+	num, err := Camera.MakeToolNumber(toolNum)
+	if err != nil {
+		num = -1
 	}
 
 	tr := thresholdRead{
-		val,
-		upperLimit,
+		num,
+		Camera.MakeUpperLimit(upperLimit),
 	}
 
 	return &tr, err
@@ -255,18 +227,25 @@ func (cmd *thresholdRead) Compose() string {
 func (cmd *thresholdRead) Interpret(s string) *thresholdReadResponse {
 	data := strings.Split(s, ",")
 	prefix := data[0]
-	toolNum, _ := strconv.Atoi(data[1])
-	upper := false
-	if data[2] == "1" {
+
+	num, _ := strconv.Atoi(data[1])
+	toolNum, _ := Camera.MakeToolNumber(num)
+
+	var upper bool
+	if s == "0" {
+		upper = false
+	} else if s == "1" {
 		upper = true
 	}
+
 	tLimit, _ := strconv.Atoi(data[3])
+	threshold, _ := Camera.MakeThreshold(tLimit)
 
 	r := thresholdReadResponse{
 		prefix:         prefix,
 		toolNum:        toolNum,
-		upperLimit:     upper,
-		thresholdLimit: tLimit,
+		upperLimit:     Camera.MakeUpperLimit(upper),
+		thresholdLimit: threshold,
 	}
 
 	return &r
@@ -274,9 +253,9 @@ func (cmd *thresholdRead) Interpret(s string) *thresholdReadResponse {
 
 type thresholdReadResponse struct { //docs says it wont error, can always add later if needed
 	prefix         string
-	toolNum        int
-	upperLimit     bool
-	thresholdLimit int
+	toolNum        Camera.ToolNumber
+	upperLimit     Camera.UpperLimit
+	thresholdLimit Camera.Threshold
 }
 
 func (r *thresholdReadResponse) Ok() bool {
@@ -289,31 +268,30 @@ func (r *thresholdReadResponse) Ok() bool {
 }
 
 type thresholdWrite struct {
-	toolNum    int
-	upperLimit bool
-	newLimit   int
+	toolNum    Camera.ToolNumber
+	upperLimit Camera.UpperLimit
+	newLimit   Camera.Threshold
 }
 
 // Set the threshold of the given tool and limit to entered limit
 func ThresholdWrite(toolNum int, upperLimit bool, newLimit int) (*thresholdWrite, error) {
-	tVal := -1
-	var err error = nil
-	if -1 < toolNum && toolNum < 65 {
-		tVal = toolNum
+	var tNum Camera.ToolNumber
+	var threshold Camera.Threshold
+	var positionToolErr, toolNumErr, thresholdErr error = nil, nil, nil
+	if toolNum == 0 {
+		toolNum = -1
+		positionToolErr = fmt.Errorf("invalid tool number, cannot target position tool 00")
 	} else {
-		err = fmt.Errorf("invalid tool number %v", toolNum)
-	}
-	newVal := -1
-	if err == nil && -1 < newLimit && newLimit < 10000000 {
-		newVal = newLimit
-	} else {
-		err = fmt.Errorf("invalid threshold value %v", newLimit)
+		tNum, toolNumErr = Camera.MakeToolNumber(toolNum)
+		threshold, thresholdErr = Camera.MakeThreshold(newLimit)
 	}
 	tw := thresholdWrite{
-		toolNum:    tVal,
-		upperLimit: upperLimit,
-		newLimit:   newVal,
+		toolNum:    tNum,
+		upperLimit: Camera.MakeUpperLimit(upperLimit),
+		newLimit:   threshold,
 	}
+
+	err := errors.Join(positionToolErr, toolNumErr, thresholdErr)
 
 	return &tw, err
 }
@@ -329,7 +307,8 @@ func (cmd *thresholdWrite) Compose() string {
 func (cmd *thresholdWrite) Interpret(s string) *thresholdWriteResponse {
 	data := strings.Split(s, ",")
 	prefix := data[0]
-	toolNum, _ := strconv.Atoi(data[1])
+	num, _ := strconv.Atoi(data[1])
+	toolNum, _ := Camera.MakeToolNumber(num)
 
 	r := thresholdWriteResponse{
 		prefix:  prefix,
@@ -341,7 +320,7 @@ func (cmd *thresholdWrite) Interpret(s string) *thresholdWriteResponse {
 
 type thresholdWriteResponse struct {
 	prefix  string
-	toolNum int
+	toolNum Camera.ToolNumber
 }
 
 func (r *thresholdWriteResponse) Ok() bool {
@@ -354,19 +333,22 @@ func (r *thresholdWriteResponse) Ok() bool {
 }
 
 type textRead struct {
-	toolNum int
+	toolNum Camera.ToolNumber
 }
 
 // Read current master text value for specified tool in range [1, 64]
 func TextRead(toolNum int) (*textRead, error) {
-	num := -1
+	var tNum Camera.ToolNumber
 	var err error = nil
-	if 0 < toolNum && toolNum < 65 {
-		num = toolNum
+	if toolNum == 0 {
+		tNum = -1
+		err = fmt.Errorf("invalid tool number, cannot target position tool 00")
 	} else {
-		err = fmt.Errorf("invalid tool number %v, should be in range [1, 64]", toolNum)
+		tNum, err = Camera.MakeToolNumber(toolNum)
+
 	}
-	return &textRead{num}, err
+
+	return &textRead{tNum}, err
 }
 
 func (cmd *textRead) Compose() string {
@@ -376,12 +358,13 @@ func (cmd *textRead) Compose() string {
 func (cmd *textRead) Interpret(s string) *textReadResponse {
 	data := strings.Split(s, ",")
 	prefix := data[0]
-	toolNum, _ := strconv.Atoi(data[1])
-	masterText := strings.Split(data[2], "")
+	num, _ := strconv.Atoi(data[1])
+	tNum, _ := Camera.MakeToolNumber(num)
+	mText := Camera.MakeMasterText(data[2])
 	r := textReadResponse{
 		prefix:     prefix,
-		toolNum:    toolNum,
-		masterText: masterText,
+		toolNum:    tNum,
+		masterText: mText,
 	}
 
 	return &r
@@ -389,8 +372,8 @@ func (cmd *textRead) Interpret(s string) *textReadResponse {
 
 type textReadResponse struct {
 	prefix     string
-	toolNum    int
-	masterText []string
+	toolNum    Camera.ToolNumber
+	masterText Camera.MasterText
 }
 
 func (r *textReadResponse) Ok() bool {
@@ -403,51 +386,42 @@ func (r *textReadResponse) Ok() bool {
 }
 
 type textWrite struct {
-	toolNum    int
-	masterText []string
+	toolNum    Camera.ToolNumber
+	masterText Camera.MasterText
 }
-
-const MAX_TEXT_LEN = 16
 
 // Set master text for specified tool number, text must be less than 16 characters
 func TextWrite(toolNum int, text string) (*textWrite, error) {
-	masterText := make([]string, MAX_TEXT_LEN)
-	if len(text) > 16 {
-		fmt.Printf("length of input text %v, is too long. Only the first 16 chars will be sent.\n", text)
-	}
-	var err error = nil
-	for i := range masterText {
-		masterText[i] = " "
-	}
-	s := strings.Split(text, "")
-	copy(masterText, s)
-
-	num := -1
-	if 0 < toolNum && toolNum < 65 {
-		num = toolNum
+	var tNum Camera.ToolNumber
+	var positionToolErr, err error = nil, nil
+	if toolNum == 0 {
+		tNum = -1
+		positionToolErr = fmt.Errorf("invalid tool number, cannot target position tool 00")
 	} else {
-		err = fmt.Errorf("invalid tool number %v, should be in range [1, 64]", toolNum)
+		tNum, err = Camera.MakeToolNumber(toolNum)
 	}
+	mText := Camera.MakeMasterText(text)
 	tw := textWrite{
-		toolNum:    num,
-		masterText: masterText,
+		toolNum:    tNum,
+		masterText: mText,
 	}
 
-	return &tw, err
+	return &tw, errors.Join(positionToolErr, err)
 }
 
 func (cmd *textWrite) Compose() string {
-	return fmt.Sprintf("CW,%v,%v", cmd.toolNum, strings.Join(cmd.masterText, ""))
+	return fmt.Sprintf("CW,%v,%v", cmd.toolNum, cmd.masterText)
 }
 
 func (cmd *textWrite) Interpret(s string) *textWriteResponse {
 	data := strings.Split(s, ",")
 	prefix := data[0]
-	toolNum, _ := strconv.Atoi(data[1])
+	num, _ := strconv.Atoi(data[1])
+	tNum, _ := Camera.MakeToolNumber(num)
 
 	r := textWriteResponse{
 		prefix:  prefix,
-		toolNum: toolNum,
+		toolNum: tNum,
 	}
 
 	return &r
@@ -455,7 +429,7 @@ func (cmd *textWrite) Interpret(s string) *textWriteResponse {
 
 type textWriteResponse struct {
 	prefix  string
-	toolNum int
+	toolNum Camera.ToolNumber
 }
 
 func (r *textWriteResponse) Ok() bool {
