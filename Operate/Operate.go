@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"iv3/Camera"
+	"iv3/Messenger"
 	"strconv"
 	"strings"
 )
@@ -19,7 +20,7 @@ func (cmd *blindTrig) Compose() string {
 	return "T1"
 }
 
-func (cmd *blindTrig) Interpret(s string) *blindTrigResponse {
+func (cmd *blindTrig) Interpret(s string) Messenger.Response {
 	fields := strings.Split(s, ",")
 	r := blindTrigResponse{
 		prefix: fields[0],

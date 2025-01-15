@@ -9,15 +9,15 @@ import (
 type Camera struct {
 	ip        []int
 	port      int
-	delimiter string
+	delimiter rune
 }
 
 // init iv3 camera with default values, change thru setters
-func New(ipAddress []int) *Camera {
+func NewCamera(ipAddress []int) *Camera {
 	c := Camera{
 		ip:        []int{0, 0, 0, 0},
 		port:      8500,
-		delimiter: "\r",
+		delimiter: '\r',
 	}
 	if !c.SetIp(ipAddress) {
 		fmt.Printf("Invalid ipAddress %v, camera initialized with default ip %v\nip can be updated later.", ipAddress, c.ip)
@@ -35,8 +35,17 @@ func (c *Camera) GetPort() int {
 	return c.port
 }
 
-func (c *Camera) GetDelimiter() string {
+func (c *Camera) GetDelimiter() rune {
 	return c.delimiter
+}
+
+// needs test!
+func (c *Camera) GetAddress() string {
+	s := make([]string, len(c.GetIp()))
+	for i, num := range c.ip {
+		s[i] = strconv.Itoa(num)
+	}
+	return strings.Join(s, ".") + ":" + strconv.Itoa(c.GetPort())
 }
 
 // **setters**
@@ -83,7 +92,7 @@ func (c *Camera) SetPort(newPort int) bool {
 	return ok
 }
 
-func (c *Camera) SetDelimiter(delim string) bool {
+func (c *Camera) SetDelimiter(delim rune) bool {
 	c.delimiter = delim
 	return true
 }

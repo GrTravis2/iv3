@@ -6,7 +6,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	c := New([]int{0, 0, 0, 0})
+	c := NewCamera([]int{0, 0, 0, 0})
 
 	expectedIp := []int{0, 0, 0, 0}
 	ip := c.GetIp()
@@ -18,11 +18,11 @@ func TestNew(t *testing.T) {
 	if c.GetPort() != 8500 {
 		t.Errorf("Expected port: %v, found %v\n", 8500, c.GetPort())
 	}
-	if c.GetDelimiter() != "\r" {
+	if c.GetDelimiter() != '\r' {
 		t.Errorf("Expected delimiter: %v, found %v\n", '\r', c.GetDelimiter())
 	}
 
-	c2 := New([]int{192, 168, 1, 1})
+	c2 := NewCamera([]int{192, 168, 1, 1})
 	expectedIp = []int{192, 168, 1, 1}
 	ip = c2.GetIp()
 	for i := range len(c.ip) {
@@ -33,7 +33,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestSetIp(t *testing.T) {
-	c := New([]int{0, 0, 0, 0})
+	c := NewCamera([]int{0, 0, 0, 0})
 	var tests = []struct {
 		values []int
 		out    bool
@@ -58,7 +58,7 @@ func TestSetIp(t *testing.T) {
 }
 
 func TestSetPort(t *testing.T) {
-	c := New([]int{0, 0, 0, 0})
+	c := NewCamera([]int{0, 0, 0, 0})
 	low := c.SetPort(0)
 	if low == true {
 		t.Error("setPort allows value under lower bound - Fail")

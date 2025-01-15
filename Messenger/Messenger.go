@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"iv3/Camera"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -20,7 +21,7 @@ type Messenger struct {
 	Cameras map[string]*Camera.Camera
 }
 
-func New(name string, c *Camera.Camera) *Messenger {
+func NewMessenger(name string, c *Camera.Camera) *Messenger {
 	m := Messenger{
 		Cameras: make(map[string]*Camera.Camera),
 	}
@@ -32,9 +33,13 @@ func New(name string, c *Camera.Camera) *Messenger {
 func (m *Messenger) Send(name string, msg Message) (Response, error) {
 	c := m.Cameras[name]
 	var result string = ""
-	conn, err := net.Dial("tcp", fmt.Sprintf("%v:%v", c.GetIp(), c.GetPort()))
+	var ip string = ""
+	for _, val := range c.GetIp() {
+		ip += strconv.Itoa(val)
+	}
+	conn, err := net.Dial("tcp", c.GetAddress())
 	if err == nil {
-		data := []byte(msg.Compose() + c.GetDelimiter())
+		data := []byte(msg.Compose() + string(c.GetDelimiter()))
 		_, err := conn.Write(data)
 		if err == nil {
 			//read response
