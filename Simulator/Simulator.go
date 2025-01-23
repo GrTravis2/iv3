@@ -11,13 +11,15 @@ import (
 
 var localhostAddr = [...]int{127, 0, 0, 1}
 
+// str representation of command messges and responses
+// in map format {prefix : response}
 const responseData string = `
 T1,T1
 RT,RT,00000,NG
 T2,RT,00000,NG
 PR,PR,099
 PW,PW
-DR,DR,01,0023250
+DR,DR,03,0,0023250
 DW,DW,01,0,80
 CR,CR,01,123456789ABCDE  
 CW,CW,0123456789
@@ -74,6 +76,7 @@ func (sim *simulator) handleRequest(conn net.Conn) {
 			conn.Close()
 			return
 		}
+		msg, _ = strings.CutSuffix(msg, "\r")
 		fields := strings.Split(msg, ",")
 		prefix := ""
 		if fields[0] == "ER" {
@@ -81,7 +84,7 @@ func (sim *simulator) handleRequest(conn net.Conn) {
 		} else {
 			prefix = fields[0]
 		}
-		fmt.Printf("received message %s", msg)
+		fmt.Printf("received message %s\n", msg)
 		conn.Write([]byte(sim.responses[prefix] + string(sim.camera.GetDelimiter())))
 	}
 }

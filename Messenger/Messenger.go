@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"iv3/Camera"
 	"net"
-	"strconv"
 	"strings"
 )
 
@@ -33,10 +32,10 @@ func NewMessenger(name string, c *Camera.Camera) *Messenger {
 func (m *Messenger) Send(name string, msg Message) (Response, error) {
 	c := m.Cameras[name]
 	var result string = ""
-	var ip string = ""
+	/*var ip string = ""
 	for _, val := range c.GetIp() {
 		ip += strconv.Itoa(val)
-	}
+	}*/
 	conn, err := net.Dial("tcp", c.GetAddress())
 	if err == nil {
 		data := []byte(msg.Compose() + string(c.GetDelimiter()))
@@ -48,7 +47,7 @@ func (m *Messenger) Send(name string, msg Message) (Response, error) {
 			//read data from client
 			n, err := conn.Read(buffer)
 			if err == nil {
-				result = strings.Trim(string(buffer[:n]), fmt.Sprintf(",%v", c.GetDelimiter()))
+				result = strings.Trim(string(buffer[:n]), fmt.Sprintf("%v", c.GetDelimiter()))
 			}
 		}
 	}

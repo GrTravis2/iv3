@@ -41,7 +41,7 @@ func (c *Camera) GetDelimiter() rune {
 
 // needs test!
 func (c *Camera) GetAddress() string {
-	s := make([]string, len(c.GetIp()))
+	s := make([]string, len(c.ip))
 	for i, num := range c.ip {
 		s[i] = strconv.Itoa(num)
 	}

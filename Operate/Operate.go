@@ -51,7 +51,7 @@ func (cmd *readResult) Compose() string {
 	return "RT"
 }
 
-func (cmd *readResult) Interpret(s string) *readResultResponse {
+func (cmd *readResult) Interpret(s string) Messenger.Response {
 	err := false
 	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
 		err = true
@@ -88,7 +88,7 @@ func (cmd *trig) Compose() string {
 	return "T2"
 }
 
-func (cmd *trig) Interpret(s string) *trigResponse {
+func (cmd *trig) Interpret(s string) Messenger.Response {
 	err := false
 	if s[:strings.Index(s, ",")] == "ER" { // err msg returned
 		err = true
@@ -125,7 +125,7 @@ func (cmd *programRead) Compose() string {
 	return "PR"
 }
 
-func (cmd *programRead) Interpret(s string) *programReadResponse {
+func (cmd *programRead) Interpret(s string) Messenger.Response {
 	data := strings.Split(s, ",")
 	num, _ := strconv.Atoi(data[1]) // -> data coming from camera, trust its valid
 	pNum, _ := Camera.MakeProgramNumber(num)
@@ -172,7 +172,7 @@ func (cmd *programWrite) Compose() string {
 	return fmt.Sprintf("PW,%v", cmd.num)
 }
 
-func (cmd *programWrite) Interpret(s string) *programWriteResponse {
+func (cmd *programWrite) Interpret(s string) Messenger.Response {
 	err := false
 	if s[:2] == "ER" { // err msg returned
 		err = true
@@ -202,6 +202,7 @@ type thresholdRead struct {
 }
 
 // Read a program limit of the specified tool and limit type (upper/lower)
+// Ranges: toolNum [0, 64]
 func ThresholdRead(toolNum int, upperLimit bool) (*thresholdRead, error) {
 	num, err := Camera.MakeToolNumber(toolNum)
 	if err != nil {
@@ -225,7 +226,7 @@ func (cmd *thresholdRead) Compose() string {
 	return fmt.Sprintf("DR,%v,%v", cmd.toolNum, b)
 }
 
-func (cmd *thresholdRead) Interpret(s string) *thresholdReadResponse {
+func (cmd *thresholdRead) Interpret(s string) Messenger.Response {
 	data := strings.Split(s, ",")
 	prefix := data[0]
 
@@ -233,9 +234,9 @@ func (cmd *thresholdRead) Interpret(s string) *thresholdReadResponse {
 	toolNum, _ := Camera.MakeToolNumber(num)
 
 	var upper bool
-	if s == "0" {
+	if data[2] == "0" {
 		upper = false
-	} else if s == "1" {
+	} else if data[2] == "1" {
 		upper = true
 	}
 
@@ -275,6 +276,7 @@ type thresholdWrite struct {
 }
 
 // Set the threshold of the given tool and limit to entered limit
+// Ranges: toolNum [0, 64], newLimit [0, 9999999]
 func ThresholdWrite(toolNum int, upperLimit bool, newLimit int) (*thresholdWrite, error) {
 	var tNum Camera.ToolNumber
 	var threshold Camera.Threshold
@@ -305,7 +307,7 @@ func (cmd *thresholdWrite) Compose() string {
 	return fmt.Sprintf("DW,%v,%v,%v", cmd.toolNum, b, cmd.newLimit)
 }
 
-func (cmd *thresholdWrite) Interpret(s string) *thresholdWriteResponse {
+func (cmd *thresholdWrite) Interpret(s string) Messenger.Response {
 	data := strings.Split(s, ",")
 	prefix := data[0]
 	num, _ := strconv.Atoi(data[1])
@@ -356,7 +358,7 @@ func (cmd *textRead) Compose() string {
 	return fmt.Sprintf("CR,%v", cmd.toolNum)
 }
 
-func (cmd *textRead) Interpret(s string) *textReadResponse {
+func (cmd *textRead) Interpret(s string) Messenger.Response {
 	data := strings.Split(s, ",")
 	prefix := data[0]
 	num, _ := strconv.Atoi(data[1])
@@ -414,7 +416,7 @@ func (cmd *textWrite) Compose() string {
 	return fmt.Sprintf("CW,%v,%v", cmd.toolNum, cmd.masterText)
 }
 
-func (cmd *textWrite) Interpret(s string) *textWriteResponse {
+func (cmd *textWrite) Interpret(s string) Messenger.Response {
 	data := strings.Split(s, ",")
 	prefix := data[0]
 	num, _ := strconv.Atoi(data[1])
