@@ -24,7 +24,7 @@ func NewMessenger(name string, c *Camera.Camera) *Messenger {
 	m := Messenger{
 		Cameras: make(map[string]*Camera.Camera),
 	}
-	m.Add(name, *c)
+	m.Add(name, c)
 
 	return &m
 }
@@ -52,6 +52,6 @@ func (m *Messenger) Send(name string, msg Message) (Response, error) {
 	return msg.Interpret(result), err
 }
 
-func (m *Messenger) Add(name string, c Camera.Camera) {
-	m.Cameras[name] = &c
+func (m *Messenger) Add(name string, c *Camera.Camera) {
+	m.Cameras[name] = c
 }
