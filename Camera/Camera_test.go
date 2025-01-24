@@ -36,22 +36,21 @@ func TestSetIp(t *testing.T) {
 	c := NewCamera([]int{0, 0, 0, 0})
 	var tests = []struct {
 		values []int
-		out    bool
 	}{
 		//input values, result
-		{[]int{0, 0, 0, 0}, true},     // -> good!
-		{[]int{-1, 0, 0, 0}, false},   // -> low val
-		{[]int{256, 0, 0, 0}, false},  // -> high val
-		{[]int{0, 0, 0, 0, 0}, false}, // -> too many vals
-		{[]int{0, 0, 0}, false},       // -> too few vals
+		{[]int{0, 0, 0, 0}},    // -> good!
+		{[]int{-1, 0, 0, 0}},   // -> low val
+		{[]int{256, 0, 0, 0}},  // -> high val
+		{[]int{0, 0, 0, 0, 0}}, // -> too many vals
+		{[]int{0, 0, 0}},       // -> too few vals
 	}
 
 	for _, input := range tests {
-		testName := fmt.Sprintf("input%v,%v", input.values, input.out)
+		testName := fmt.Sprintf("input%v", input.values)
 		t.Run(testName, func(t *testing.T) {
 			out := c.SetIp(input.values)
-			if out != input.out {
-				t.Errorf("Expected %v, found %v", input.out, out)
+			if out != nil {
+				t.Errorf("set ip error: %v", out)
 			}
 		})
 	}
@@ -60,15 +59,15 @@ func TestSetIp(t *testing.T) {
 func TestSetPort(t *testing.T) {
 	c := NewCamera([]int{0, 0, 0, 0})
 	low := c.SetPort(0)
-	if low == true {
+	if low != nil {
 		t.Error("setPort allows value under lower bound - Fail")
 	}
 	good := c.SetPort(1024)
-	if good == false {
+	if good != nil {
 		t.Error("setPort does not set good value - Fail")
 	}
 	high := c.SetPort(65536)
-	if high == true {
+	if high != nil {
 		t.Error("setPort allows value above upper bound - Fail")
 	}
 }

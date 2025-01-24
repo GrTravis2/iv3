@@ -32,10 +32,6 @@ func NewMessenger(name string, c *Camera.Camera) *Messenger {
 func (m *Messenger) Send(name string, msg Message) (Response, error) {
 	c := m.Cameras[name]
 	var result string = ""
-	/*var ip string = ""
-	for _, val := range c.GetIp() {
-		ip += strconv.Itoa(val)
-	}*/
 	conn, err := net.Dial("tcp", c.GetAddress())
 	if err == nil {
 		data := []byte(msg.Compose() + string(c.GetDelimiter()))

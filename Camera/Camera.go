@@ -19,7 +19,7 @@ func NewCamera(ipAddress []int) *Camera {
 		port:      8500,
 		delimiter: '\r',
 	}
-	if !c.SetIp(ipAddress) {
+	if c.SetIp(ipAddress) != nil {
 		fmt.Printf("Invalid ipAddress %v, camera initialized with default ip %v\nip can be updated later.", ipAddress, c.ip)
 	}
 
@@ -50,51 +50,41 @@ func (c *Camera) GetAddress() string {
 
 // **setters**
 
-func (c *Camera) SetIp(vals []int) bool {
+func (c *Camera) SetIp(vals []int) error {
 	//validate format
-	ok := true
+	var err error = nil
 	if len(vals) != 4 {
-		ok = false
-	}
-	if ok {
-		index, value := 0, 0
-		for i, val := range vals {
+		err = fmt.Errorf("expected 4 value ip address, found %v", vals)
+	} else {
+		for _, val := range vals {
 			if val < 0 || val > 255 {
-				index = i
-				value = val
-				ok = false
+				err = fmt.Errorf("expected ip value in range [0, 255], found %v", val)
 				break
 			}
 		}
-		if ok {
+		if err == nil {
 			//input should have 4 valid values
 			c.ip = vals
-		} else {
-			fmt.Printf("Invalid number %v at position %v\n", value, index)
 		}
-	} else {
-		fmt.Printf("Invalid number of values, please try again. There should be 4 values between [0, 255] - You entered: %v\n", vals)
 	}
 
-	return ok
+	return err
 }
 
 // set camera's port value, must be in range [1024, 65535]
-func (c *Camera) SetPort(newPort int) bool {
-	ok := true
+func (c *Camera) SetPort(newPort int) error {
+	var err error = nil
 	if newPort > 1023 && newPort < 65536 {
 		c.port = newPort
 	} else {
-		ok = false
-		fmt.Printf("Invalid value for new port number, value must be in range [1024, 65535] - you entered %v\n", newPort)
+		err = fmt.Errorf("expected port in range [1024, 65535], found %v", newPort)
 	}
 
-	return ok
+	return err
 }
 
-func (c *Camera) SetDelimiter(delim rune) bool {
+func (c *Camera) SetDelimiter(delim rune) {
 	c.delimiter = delim
-	return true
 }
 
 // Camera attributes to be used in command packages
