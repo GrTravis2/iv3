@@ -3,10 +3,11 @@ package Simulator
 import (
 	"bufio"
 	"fmt"
-	"iv3/Camera"
 	"log"
 	"net"
 	"strings"
+
+	"github.com/GrTravis2/iv3/Camera"
 )
 
 var localhostAddr = [...]int{127, 0, 0, 1}
