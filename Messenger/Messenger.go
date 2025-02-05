@@ -2,9 +2,10 @@ package Messenger
 
 import (
 	"fmt"
-	"iv3/Camera"
 	"net"
 	"strings"
+
+	"github.com/GrTravis2/iv3/Camera"
 )
 
 type Message interface {
