@@ -5,7 +5,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/GrTravis2/iv3/Camera"
+	"iv3/Camera"
 )
 
 type Message interface {

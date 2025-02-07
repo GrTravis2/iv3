@@ -45,11 +45,13 @@ func TestSetIp(t *testing.T) {
 		{[]int{0, 0, 0}},       // -> too few vals
 	}
 
-	for _, input := range tests {
+	for i, input := range tests {
 		testName := fmt.Sprintf("input%v", input.values)
 		t.Run(testName, func(t *testing.T) {
 			out := c.SetIp(input.values)
-			if out != nil {
+			if i == 0 && out != nil {
+				t.Errorf("set ip error: %v", out)
+			} else if i > 0 && out == nil {
 				t.Errorf("set ip error: %v", out)
 			}
 		})
@@ -59,7 +61,7 @@ func TestSetIp(t *testing.T) {
 func TestSetPort(t *testing.T) {
 	c := NewCamera([]int{0, 0, 0, 0})
 	low := c.SetPort(0)
-	if low != nil {
+	if low == nil {
 		t.Error("setPort allows value under lower bound - Fail")
 	}
 	good := c.SetPort(1024)
@@ -67,7 +69,7 @@ func TestSetPort(t *testing.T) {
 		t.Error("setPort does not set good value - Fail")
 	}
 	high := c.SetPort(65536)
-	if high != nil {
+	if high == nil {
 		t.Error("setPort allows value above upper bound - Fail")
 	}
 }

@@ -7,7 +7,7 @@ import (
 	"net"
 	"strings"
 
-	"github.com/GrTravis2/iv3/Camera"
+	"iv3/Camera"
 )
 
 var localhostAddr = [...]int{127, 0, 0, 1}
