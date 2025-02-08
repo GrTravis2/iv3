@@ -3,9 +3,9 @@ package Simulator
 import (
 	"testing"
 
-	"iv3/Camera"
-	"iv3/Messenger"
-	"iv3/Operate"
+	"github.com/GrTravis2/iv3/Camera"
+	"github.com/GrTravis2/iv3/Messenger"
+	"github.com/GrTravis2/iv3/Operate"
 )
 
 func TestSuiteSimulator(t *testing.T) {
